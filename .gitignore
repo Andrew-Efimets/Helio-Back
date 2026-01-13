@@ -1,0 +1,13 @@
+.idea/
+.vscode/
+
+docker/mysql/
+docker/redisdata/
+docker/*.log
+
+laravel/vendor/
+laravel/node_modules/
+laravel/.env
+laravel/storage/*.key
+laravel/public/storage
+laravel/public/build
