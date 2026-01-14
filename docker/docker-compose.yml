@@ -12,6 +12,7 @@ services:
     volumes:
       - ../laravel:/var/www/html
       - ./nginx/:/etc/nginx/conf.d/
+      - ./nginx/certs/:/etc/nginx/certs:ro
     networks:
       - laravel-network
 
@@ -81,6 +82,8 @@ services:
     image: redis:latest
     environment:
       - REDIS_CLIENT=phpredis
+    ports:
+      - "6379:6379"
     volumes:
       - ./redisdata:/data
     networks:
