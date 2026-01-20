@@ -121,6 +121,23 @@ services:
     networks:
       - laravel-network
 
+  minio:
+    image: 'minio/minio:latest'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: 'sail'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - 'minio_data:/data'
+    command: 'server /data --console-address ":9001"'
+    networks:
+      - laravel-network
+
+volumes:
+  minio_data:
+
 networks:
   laravel-network:
     driver: bridge
