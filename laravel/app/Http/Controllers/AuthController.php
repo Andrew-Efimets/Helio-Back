@@ -2,30 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\VerifyCodeRequest;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'phone' => 'required|unique:users',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
         $user = User::create($validated);
 
-        $code = (string) rand(1000, 9999);
-
-        Redis::setex("sms_code:{$user->phone}", 300, $code);
-
-        Log::info("Код подтверждения для {$user->phone}: {$code}");
+        SmsService::sendSms($user);
 
         return response()->json([
             'message' => 'Пользователь зарегистрирован. Введите код из СМС.',
@@ -33,19 +28,19 @@ class AuthController extends Controller
         ]);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
+        $request->validated();
+
         $phone = $request->phone;
         $password = $request->password;
 
-        $user = User::where('phone', $phone)->firstOrFail();
+        $user = User::where('phone', $phone)->first();
 
         if($user && Hash::check($password, $user->password)){
-            $code = (string) rand(1000, 9999);
 
-            Redis::setex("sms_code:{$user->phone}", 300, $code);
+            SmsService::sendSms($user);
 
-            Log::info("Код подтверждения для {$user->phone}: {$code}");
             return response()->json([
                 'message' => 'Пользователь найден. Введите код из СМС.',
                 'phone'   => $user->phone
@@ -54,16 +49,13 @@ class AuthController extends Controller
         else {
             return response()->json([
                 'message' => 'Пользователь не найден'
-            ]);
+            ], 404);
         }
     }
 
-    public function verify(Request $request)
+    public function verify(VerifyCodeRequest $request)
     {
-        $request->validate([
-            'phone' => 'required',
-            'code'  => 'required|numeric',
-        ]);
+        $request->validated();
 
         $phone = $request->phone;
         $inputCode = $request->code;
