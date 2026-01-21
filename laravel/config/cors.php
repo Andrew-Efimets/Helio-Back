@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://heliophone'],
+    'allowed_origins' => ['https://heliophone.com'],
 
     'allowed_origins_patterns' => [],
 

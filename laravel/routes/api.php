@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,7 +20,13 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::prefix('/v1')->group(function () {
-    Route::post('/user', [UserController::class, 'store']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/verify', [AuthController::class, 'verify'])
+        ->middleware('throttle:60,1');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:60,1');
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->middleware('auth:sanctum');
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('auth:sanctum');
     Route::get('/user/{id}', [UserController::class, 'show'])

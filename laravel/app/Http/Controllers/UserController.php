@@ -21,18 +21,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'phone' => 'required',
-            'password' => 'required',
-        ]);
 
-        $user = User::create($validated);
-
-        return response()->json([
-            'message' => 'Пользователь успешно создан',
-            'user' => $user
-        ], 201);
     }
 
     /**
