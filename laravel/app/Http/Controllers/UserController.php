@@ -29,7 +29,16 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::where('id', $id)->first();
+        return response()->json([
+            'message' => 'Переданы данные пользователя',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'avatar' => $user->avatar,
+            ]], 200
+        );
     }
 
     /**

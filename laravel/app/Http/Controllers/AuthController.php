@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -24,7 +25,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Пользователь зарегистрирован. Введите код из СМС.',
-            'phone'   => $user->phone
+            'phone' => $user->phone
         ]);
     }
 
@@ -37,16 +38,15 @@ class AuthController extends Controller
 
         $user = User::where('phone', $phone)->first();
 
-        if($user && Hash::check($password, $user->password)){
+        if ($user && Hash::check($password, $user->password)) {
 
             SmsService::sendSms($user);
 
             return response()->json([
                 'message' => 'Пользователь найден. Введите код из СМС.',
-                'phone'   => $user->phone
+                'phone' => $user->phone
             ]);
-        }
-        else {
+        } else {
             return response()->json([
                 'message' => 'Пользователь не найден'
             ], 404);
@@ -79,7 +79,12 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Вход выполнен успешно',
-            'user'    => $user
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+//                'avatar' => Storage::disk('s3')->url($user->avatar_url),
+                'avatar' => $user->avatar_url,
+            ]
         ]);
     }
 
