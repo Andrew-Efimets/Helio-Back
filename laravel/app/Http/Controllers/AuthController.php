@@ -82,6 +82,7 @@ class AuthController extends Controller
             'data' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'phone' => $user->phone,
 //                'avatar' => Storage::disk('s3')->url($user->avatar_url),
                 'avatar' => $user->avatar_url,
             ]
