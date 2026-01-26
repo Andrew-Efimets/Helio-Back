@@ -36,7 +36,8 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'phone' => $user->phone,
-                'avatar' => $user->avatar,
+                'avatar' => $user->avatars()
+                    ->where('is_active', true)->first()->avatar_url,
             ]], 200
         );
     }

@@ -20,6 +20,7 @@ class AvatarController extends Controller
         });
 
         return response()->json([
+            'message' => 'Успех',
             'data' => $avatars,
         ]);
     }
@@ -46,6 +47,7 @@ class AvatarController extends Controller
                 'message' => 'Аватар успешно загружен',
                 'data' => [
                     'avatar' => $avatar->avatar_url,
+                    'debug_path' => $path
                 ]
             ]);
 
