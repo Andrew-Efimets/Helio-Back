@@ -40,9 +40,9 @@ Route::prefix('/v1')->group(function () {
         ->middleware('auth:sanctum');
     Route::post('/profile/{user}/avatar', [AvatarController::class, 'store'])
         ->middleware('auth:sanctum');
-    Route::patch('/profile/{user}/avatar', [AvatarController::class, 'edit'])
+    Route::patch('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'update'])
         ->middleware('auth:sanctum');
-    Route::delete('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'edit'])
+    Route::delete('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'destroy'])
         ->middleware('auth:sanctum');
 });
 
