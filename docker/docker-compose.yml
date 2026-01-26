@@ -131,6 +131,7 @@ services:
       MINIO_ROOT_PASSWORD: 'password'
     volumes:
       - 'minio_data:/data'
+      - './docker/minio/certs:/root/.minio/certs'
     command: 'server /data --console-address ":9001"'
     networks:
       - laravel-network
