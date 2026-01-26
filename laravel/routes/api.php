@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,14 @@ Route::prefix('/v1')->group(function () {
     Route::patch('/user/{id}', [UserController::class, 'update'])
         ->middleware('auth:sanctum');
     Route::delete('/user/{id}', [UserController::class, 'destroy'])
+        ->middleware('auth:sanctum');
+    Route::get('/profile/{user}/avatars', [AvatarController::class, 'index'])
+        ->middleware('auth:sanctum');
+    Route::post('/profile/{user}/avatar', [AvatarController::class, 'store'])
+        ->middleware('auth:sanctum');
+    Route::patch('/profile/{user}/avatar', [AvatarController::class, 'edit'])
+        ->middleware('auth:sanctum');
+    Route::delete('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'edit'])
         ->middleware('auth:sanctum');
 });
 
