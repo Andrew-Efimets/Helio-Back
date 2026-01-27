@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvatarController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -30,11 +31,11 @@ Route::prefix('/v1')->group(function () {
         ->middleware('auth:sanctum');
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('auth:sanctum');
-    Route::get('/user/{id}', [UserController::class, 'show'])
+    Route::get('/user/{user}', [UserController::class, 'show'])
         ->middleware('auth:sanctum');
-    Route::patch('/user/{id}', [UserController::class, 'update'])
+    Route::patch('/user/{user}', [UserController::class, 'update'])
         ->middleware('auth:sanctum');
-    Route::delete('/user/{id}', [UserController::class, 'destroy'])
+    Route::delete('/user/{user}', [UserController::class, 'destroy'])
         ->middleware('auth:sanctum');
     Route::get('/profile/{user}/avatars', [AvatarController::class, 'index'])
         ->middleware('auth:sanctum');
@@ -43,6 +44,8 @@ Route::prefix('/v1')->group(function () {
     Route::patch('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'update'])
         ->middleware('auth:sanctum');
     Route::delete('/profile/{user}/avatar/{avatar}', [AvatarController::class, 'destroy'])
+        ->middleware('auth:sanctum');
+    Route::post('/user/{user}/contact', [ContactController::class, 'toggle'])
         ->middleware('auth:sanctum');
 });
 

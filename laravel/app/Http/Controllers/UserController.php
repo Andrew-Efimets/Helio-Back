@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -27,33 +30,50 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        $user = User::where('id', $id)->first();
+        $user->load(['avatars', 'profile']);
+
         return response()->json([
             'message' => 'Переданы данные пользователя',
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'phone' => $user->phone,
-                'avatar' => $user->avatars()
-                    ->where('is_active', true)->first()->avatar_url,
-            ]], 200
-        );
+            'data' => new UserResource($user)
+        ], 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UserRequest $request, User $user)
     {
-        //
+        $validated = $request->validated();
+
+        try {
+            DB::transaction(function () use ($validated, $user) {
+                $user->update($validated);
+
+                $user->profile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $validated
+                );
+            });
+
+            return response()->json([
+                'message' => 'Данные успешно обновлены',
+                'data' => $user->load('profile')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Ошибка при сохранении данных',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
         //
     }

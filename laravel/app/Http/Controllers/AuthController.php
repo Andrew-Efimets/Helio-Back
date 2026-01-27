@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,24 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::create($validated);
+        $user = DB::transaction(function () use ($validated) {
+            $user = User::create($validated);
+
+            $user->profile()->create([
+                'privacy' => [
+                    'show_phone' => 'public',
+                    'show_account' => 'public',
+                    'show_photo' => 'public',
+                    'show_video' => 'public',
+                    'show_contacts' => 'public',
+                ],
+                'country' => null,
+                'city' => null,
+            ]);
+
+            return $user;
+        });
+
 
         SmsService::sendSms($user);
 
@@ -83,8 +101,6 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'phone' => $user->phone,
-                'avatar' => $user->avatars()
-                    ->where('is_active', true)->first()?->avatar_url,
             ]
         ]);
     }
