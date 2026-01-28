@@ -6,10 +6,12 @@ use App\Http\Requests\AvatarRequest;
 use App\Http\Resources\AvatarResource;
 use App\Models\Avatar;
 use App\Models\User;
+use App\Traits\HasOwnerStatus;
 use Illuminate\Support\Facades\Storage;
 
 class AvatarController extends Controller
 {
+    use HasOwnerStatus;
     public function index(User $user)
     {
         return response()->json([
@@ -46,9 +48,7 @@ class AvatarController extends Controller
 
     public function update(User $user, Avatar $avatar)
     {
-        if ($avatar->user_id !== $user->id) {
-            return response()->json(['message' => 'Доступ запрещен'], 403);
-        }
+        $this->checkOwner($avatar);
 
         try {
             $user->avatars()->update(['is_active' => false]);
@@ -69,9 +69,7 @@ class AvatarController extends Controller
 
     public function destroy(User $user, Avatar $avatar)
     {
-        if ($avatar->user_id !== $user->id) {
-            return response()->json(['message' => 'Доступ запрещен'], 403);
-        }
+        $this->checkOwner($avatar);
 
         try {
             if ($avatar->is_active) {
