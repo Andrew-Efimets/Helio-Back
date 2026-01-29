@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Traits\HasOwnerStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+    use HasOwnerStatus;
     /**
      * Display a listing of the resource.
      */
@@ -75,6 +78,16 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $this->checkOwner($user);
+
+        Auth::guard('web')->logout();
+
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Пользователь удалён'
+        ]);
     }
 }
