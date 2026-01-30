@@ -7,9 +7,9 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\VerifyCodeRequest;
 use App\Models\User;
 use App\Services\SmsService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 
@@ -19,24 +19,7 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $user = DB::transaction(function () use ($validated) {
-            $user = User::create($validated);
-
-            $user->profile()->create([
-                'privacy' => [
-                    'show_phone' => 'public',
-                    'show_account' => 'public',
-                    'show_photo' => 'public',
-                    'show_video' => 'public',
-                    'show_contacts' => 'public',
-                ],
-                'country' => null,
-                'city' => null,
-            ]);
-
-            return $user;
-        });
-
+        $user = UserService::createUser($validated);
 
         SmsService::sendSms($user);
 
@@ -61,7 +44,6 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Пользователь найден. Введите код из СМС.',
-                'phone' => $user->phone
             ]);
         } else {
             return response()->json([
@@ -98,8 +80,6 @@ class AuthController extends Controller
             'message' => 'Вход выполнен успешно',
             'data' => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'phone' => $user->phone,
             ]
         ]);
     }

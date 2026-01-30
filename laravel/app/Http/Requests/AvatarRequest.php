@@ -11,7 +11,7 @@ class AvatarRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user->id === auth()->id();
+        return auth()->check() && auth()->id() === $this->route('user')?->id;
     }
 
     /**

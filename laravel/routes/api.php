@@ -7,7 +7,10 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::get('/login', function () {
     return 'Unauthorize';

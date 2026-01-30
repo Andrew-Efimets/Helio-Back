@@ -50,5 +50,7 @@ RUN git config --global --add safe.directory /var/www/html
 
 WORKDIR /var/www/html
 
+COPY ./laravel.ini /usr/local/etc/php/conf.d/custom.ini
+
 ENTRYPOINT ["/var/www/start.sh"]
 CMD ["php-fpm"]

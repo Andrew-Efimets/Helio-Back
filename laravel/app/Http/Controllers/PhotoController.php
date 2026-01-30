@@ -27,7 +27,6 @@ class PhotoController extends Controller
             $photo = $user->photos()->create([
                 'path' => $path,
                 'photo_url' => Storage::disk('s3')->url($path),
-
             ]);
 
             return response()->json([

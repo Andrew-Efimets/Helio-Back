@@ -6,7 +6,6 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Traits\HasOwnerStatus;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -19,15 +18,9 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return response()->json($users, 200);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-
+        return response()->json([
+            'users' => UserResource::collection($users)
+        ], 200);
     }
 
     /**

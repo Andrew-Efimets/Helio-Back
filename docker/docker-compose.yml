@@ -96,7 +96,7 @@ services:
       context: ./
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: php artisan queue:work
+    command: php artisan queue:work --timeout=600
     volumes:
       - ../laravel:/var/www/html
     depends_on:

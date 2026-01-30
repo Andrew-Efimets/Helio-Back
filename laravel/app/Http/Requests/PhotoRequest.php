@@ -11,7 +11,7 @@ class PhotoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->id() === $this->user?->id;
+        return auth()->check() && auth()->id() === $this->route('user')?->id;
     }
 
     /**

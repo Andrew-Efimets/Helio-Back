@@ -11,7 +11,7 @@ class VideoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->id() === $this->user?->id;
+        return auth()->check() && auth()->id() === $this->route('user')?->id;
     }
 
     /**
@@ -25,7 +25,7 @@ class VideoRequest extends FormRequest
             'video' => [
                 'required',
                 'file',
-                'mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo',
+                'mimes:mp4,mov,avi,mpeg',
                 'max:1024000',
             ],
         ];
@@ -34,7 +34,7 @@ class VideoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'video.max' => 'Фотография слишком большая (макс. 1ГБ)',
+            'video.max' => 'Видео слишком большое (макс. 1ГБ)',
             'video.required' => 'Выберите видеофайл для загрузки',
         ];
     }
