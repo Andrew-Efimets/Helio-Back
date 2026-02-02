@@ -6,8 +6,6 @@ use App\Http\Requests\VideoRequest;
 use App\Jobs\SendFileToS3;
 use App\Models\User;
 use App\Models\Video;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
 {
@@ -25,20 +23,17 @@ class VideoController extends Controller
             $file = $request->file('video');
 
             $tempPath = $file->store('temp', 'local');
-            $finalPath = date('Y/m/') . $user->id . '/videos/' . $file->hashName();
+            $finalPath = $user->created_at->format('Y/m/') . $user->id . '/videos/' . $file->hashName();
+            $thumbnailFinalPath = $user->created_at
+                    ->format('Y/m/'). $user->id . '/thumbnails/';
 
             $video = $user->videos()->create([
                 'path' => 'processing...',
                 'video_url' => null,
+                'thumbnail_url' => null,
             ]);
 
-            Log::info('Данные перед отправкой в S3:', [
-                'temp' => $tempPath,
-                'final' => $finalPath,
-                'video' => $video->toArray()
-            ]);
-
-            SendFileToS3::dispatch($video, $tempPath, $finalPath);
+            SendFileToS3::dispatch($video, $tempPath, $finalPath, $thumbnailFinalPath);
 
             return response()->json([
                 'message' => 'Видео принято в обработку и скоро появится',

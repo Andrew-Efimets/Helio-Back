@@ -25,7 +25,7 @@ class AvatarController extends Controller
         try {
             $user->avatars()->update(['is_active' => false]);
 
-            $folder = date('Y/m/') . $user->id . '/avatars';
+            $folder = $user->created_at->format('Y/m/') . $user->id . '/avatars';
             $path = $request->file('avatar')->store($folder, 's3');
 
             $avatar = $user->avatars()->create([

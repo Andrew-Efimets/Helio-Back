@@ -21,7 +21,7 @@ class PhotoController extends Controller
     public function store(PhotoRequest $request, User $user)
     {
         try {
-            $folder = date('Y/m/') . $user->id . '/photos';
+            $folder = $user->created_at->format('Y/m/') . $user->id . '/photos';
             $path = $request->file('photo')->store($folder, 's3');
 
             $photo = $user->photos()->create([
