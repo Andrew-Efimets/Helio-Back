@@ -10,10 +10,12 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class SendFileToS3 implements ShouldQueue
+class SendVideoToS3 implements ShouldQueue
 {
     use Queueable;
 
+    public $tries = 3;
+    public $backoff = 30;
     public $timeout = 3600;
 
     public function __construct(
@@ -22,8 +24,7 @@ class SendFileToS3 implements ShouldQueue
         public string $finalPath,
         public string $thumbnailFinalPath,
     )
-    {
-    }
+    {}
 
     public function handle(): void
     {
@@ -51,17 +52,13 @@ class SendFileToS3 implements ShouldQueue
 
             $this->model->update([
                 'path' => $this->finalPath,
-                'video_url' => Storage::disk('s3')->url($this->finalPath),
                 'thumbnail_url' => Storage::disk('s3')->url($thumbnailFinalPath),
             ]);
 
-            Storage::disk('local')->delete($this->tempPath);
             if (Storage::disk('local')->exists($tempThumbPath)) {
                 Storage::disk('local')->delete($tempThumbPath);
             }
 
-
-            broadcast(new VideoProcessed($this->model));
         } catch (\Exception $exception) {
             Log::error('Ошибка S3/FFmpeg: ' . $exception->getMessage());
         }

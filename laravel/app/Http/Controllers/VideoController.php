@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\VideoRequest;
-use App\Jobs\SendFileToS3;
+use App\Jobs\ConvertVideoForWeb;
+use App\Jobs\CreateVideoPreview;
+use App\Jobs\SendVideoToS3;
 use App\Models\User;
 use App\Models\Video;
+use Illuminate\Support\Facades\Bus;
 
 class VideoController extends Controller
 {
@@ -33,7 +36,13 @@ class VideoController extends Controller
                 'thumbnail_url' => null,
             ]);
 
-            SendFileToS3::dispatch($video, $tempPath, $finalPath, $thumbnailFinalPath);
+            Bus::chain([
+                new SendVideoToS3($video, $tempPath, $finalPath, $thumbnailFinalPath),
+                new CreateVideoPreview($video, $tempPath),
+                new ConvertVideoForWeb($video, $tempPath),
+            ])->dispatch();
+
+
 
             return response()->json([
                 'message' => 'Видео принято в обработку и скоро появится',
