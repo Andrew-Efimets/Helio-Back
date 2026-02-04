@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Events\VideoProcessed;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
 use Illuminate\Contracts\Queue\ShouldQueue;

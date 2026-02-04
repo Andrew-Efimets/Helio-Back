@@ -8,10 +8,13 @@ use App\Jobs\CreateVideoPreview;
 use App\Jobs\SendVideoToS3;
 use App\Models\User;
 use App\Models\Video;
+use App\Traits\HasOwnerStatus;
 use Illuminate\Support\Facades\Bus;
 
 class VideoController extends Controller
 {
+    use HasOwnerStatus;
+
     public function index(User $user)
     {
         return response()->json([
@@ -59,8 +62,14 @@ class VideoController extends Controller
 
     }
 
-    public function destroy(Video $video)
+    public function destroy(User $user, Video $video)
     {
+        $this->checkOwner($video);
 
+        $video->delete();
+
+        return response()->json([
+           'message' => 'Видео успешно удалено'
+        ]);
     }
 }

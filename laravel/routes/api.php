@@ -39,13 +39,13 @@ Route::prefix('/v1')->group(function () {
             Route::get('photo/{photo}', [PhotoController::class, 'show'])
                 ->middleware('privacy:show_photo');
             Route::post('/photo', [PhotoController::class, 'store']);
-            Route::delete('/photo', [PhotoController::class, 'destroy']);
+            Route::delete('/photo/{photo}', [PhotoController::class, 'destroy']);
             Route::get('/videos', [VideoController::class, 'index'])
                 ->middleware('privacy:show_video');
             Route::get('/video/{video}', [VideoController::class, 'show'])
                 ->middleware('privacy:show_video');
             Route::post('/video', [VideoController::class, 'store']);
-            Route::delete('/video', [VideoController::class, 'destroy']);
+            Route::delete('/video/{video}', [VideoController::class, 'destroy']);
             Route::get('/chats', [ChatController::class, 'index'])
                 ->middleware('privacy:show_chat');
             Route::get('/chat/{chat}', [ChatController::class, 'show'])
