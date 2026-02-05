@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class AvatarController extends Controller
 {
     use HasOwnerStatus;
+
     public function index(User $user)
     {
         return response()->json([
@@ -73,7 +74,10 @@ class AvatarController extends Controller
 
         try {
             if ($avatar->is_active) {
-                $next = $user->avatars()->where('id', '!=', $avatar->id)->first();
+                $next = $user->avatars()
+                    ->where('id', '!=', $avatar->id)
+                    ->latest()
+                    ->first();
                 if ($next) {
                     $next->update(['is_active' => true]);
                 }
@@ -87,7 +91,9 @@ class AvatarController extends Controller
             return response()->json([
                 'message' => 'Аватар удалён',
                 'data' => [
-                    'avatar' => $user->avatars()->where('is_active', true)
+                    'avatar' => $user->fresh('avatars')
+                        ->avatars
+                        ->where('is_active', true)
                         ->first()?->avatar_url
                 ]
             ]);

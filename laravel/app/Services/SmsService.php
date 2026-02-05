@@ -12,7 +12,7 @@ class SmsService
     {
         $code = (string) rand(1000, 9999);
 
-        Redis::setex("sms_code:{$user->phone}", 300, $code);
+        Redis::setex("sms_code:{$user->phone}", 180, $code);
 
         Log::info("Код подтверждения для {$user->phone}: {$code}");
 
