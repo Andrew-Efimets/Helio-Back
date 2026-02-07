@@ -23,12 +23,12 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $gender = fake()->randomElement(['male', 'female']);
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'name' => fake('ru_RU')->firstName($gender) . ' ' . fake('ru_RU')->lastName($gender),
+            'phone' => fake()->unique()->numerify('+7 (9##) ###-##-##'),
+            'password' => static::$password ??= Hash::make('123'),
         ];
     }
 

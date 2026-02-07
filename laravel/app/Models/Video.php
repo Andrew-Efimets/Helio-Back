@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Video extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'path',
+        'video_url',
+        'thumbnail_url',
+        'preview_url'
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}

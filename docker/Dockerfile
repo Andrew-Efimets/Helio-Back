@@ -43,12 +43,18 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN update-ca-certificates
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY ./start.sh /var/www/
 RUN chmod +x /var/www/start.sh
 
 RUN git config --global --add safe.directory /var/www/html
 
 WORKDIR /var/www/html
+
+COPY ./laravel.ini /usr/local/etc/php/conf.d/custom.ini
 
 ENTRYPOINT ["/var/www/start.sh"]
 CMD ["php-fpm"]

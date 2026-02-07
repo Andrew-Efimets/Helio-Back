@@ -12,6 +12,7 @@ services:
     volumes:
       - ../laravel:/var/www/html
       - ./nginx/:/etc/nginx/conf.d/
+      - ./nginx/certs/:/etc/nginx/certs:ro
     networks:
       - laravel-network
 
@@ -81,6 +82,8 @@ services:
     image: redis:latest
     environment:
       - REDIS_CLIENT=phpredis
+    ports:
+      - "6379:6379"
     volumes:
       - ./redisdata:/data
     networks:
@@ -93,7 +96,7 @@ services:
       context: ./
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: php artisan queue:work
+    command: php artisan queue:work --timeout=3600
     volumes:
       - ../laravel:/var/www/html
     depends_on:
@@ -117,6 +120,24 @@ services:
       - database
     networks:
       - laravel-network
+
+  minio:
+    image: 'minio/minio:latest'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: 'sail'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - 'minio_data:/data'
+      - './minio/certs:/root/.minio/certs'
+    command: 'server /data --console-address ":9001"'
+    networks:
+      - laravel-network
+
+volumes:
+  minio_data:
 
 networks:
   laravel-network:
