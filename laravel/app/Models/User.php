@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(Avatar::class);
     }
 
+    public function activeAvatar(): HasOne
+    {
+        return $this->hasOne(Avatar::class)->where('is_active', 1);
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class);

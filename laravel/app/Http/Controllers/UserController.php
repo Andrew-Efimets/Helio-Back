@@ -28,7 +28,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['avatars', 'profile']);
+        $user->load(['avatars', 'profile'])
+            ->loadCount(['photos', 'videos', 'contacts']);
 
         return response()->json([
             'message' => 'Переданы данные пользователя',

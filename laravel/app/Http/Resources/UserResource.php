@@ -23,6 +23,9 @@ class UserResource extends JsonResource
             'avatar' => $this->avatars
                 ->where('is_active', true)
                 ->first()?->avatar_url,
+            'photos_count' => $this->photos_count,
+            'videos_count' => $this->videos_count,
+            'contacts_count' => $this->contacts_count,
 
             'profile' => [
                 'country' => $this->profile->country,

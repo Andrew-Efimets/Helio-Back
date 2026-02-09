@@ -8,6 +8,7 @@ use App\Models\Video;
 use App\Observers\PhotoObserver;
 use App\Observers\UserObserver;
 use App\Observers\VideoObserver;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,5 +29,11 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Photo::observe(PhotoObserver::class);
         Video::observe(VideoObserver::class);
+
+        Relation::enforceMorphMap([
+            'video' => Video::class,
+            'photo' => Photo::class,
+//            'post'  => \App\Models\Post::class,
+        ]);
     }
 }
