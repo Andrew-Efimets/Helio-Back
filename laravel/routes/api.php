@@ -36,6 +36,7 @@ Route::prefix('/v1')->group(function () {
             Route::get('/contacts', [ContactController::class, 'index'])
                 ->middleware('privacy:show_contacts');
             Route::post('/contact', [ContactController::class, 'toggle']);
+            Route::post('/contact/accept', [ContactController::class, 'accept']);
 
             Route::get('/photos', [PhotoController::class, 'index'])
                 ->middleware('privacy:show_photo');

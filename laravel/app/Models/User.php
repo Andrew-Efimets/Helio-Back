@@ -81,7 +81,21 @@ class User extends Authenticatable
             'contacts',
             'user_id',
             'contact_id'
-        )->withTimestamps();
+        )
+            ->withPivot('status')
+            ->wherePivot('status', 'accepted')
+            ->withTimestamps();
+    }
+
+    public function pending_contacts(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'contacts',
+            'contact_id',
+            'user_id'
+        )
+            ->wherePivot('status', 'pending');
     }
 
     public function addedBy(): BelongsToMany

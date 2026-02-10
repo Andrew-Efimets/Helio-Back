@@ -29,7 +29,12 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load(['avatars', 'profile'])
-            ->loadCount(['photos', 'videos', 'contacts']);
+            ->loadCount([
+                'photos',
+                'videos',
+                'contacts',
+                'pending_contacts'
+            ]);
 
         return response()->json([
             'message' => 'Переданы данные пользователя',
@@ -54,9 +59,12 @@ class UserController extends Controller
                 );
             });
 
+            $user->fresh()->load(['avatars', 'profile'])
+                ->loadCount(['photos', 'videos', 'contacts']);
+
             return response()->json([
                 'message' => 'Данные успешно обновлены',
-                'data' => $user->load('profile')
+                'data' => new UserResource($user)
             ]);
 
         } catch (\Exception $e) {
