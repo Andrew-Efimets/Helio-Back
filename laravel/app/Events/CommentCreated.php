@@ -19,7 +19,7 @@ class CommentCreated implements ShouldBroadcast
 
     public function __construct(Comment $comment)
     {
-        $this->comment = $comment->load('user');
+        $this->comment = $comment->loadMissing(['user.activeAvatar', 'parent.user']);
     }
 
     public function broadcastOn()

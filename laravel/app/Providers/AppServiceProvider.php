@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Photo;
+use App\Models\Post;
 use App\Models\User;
 use App\Models\Video;
 use App\Observers\PhotoObserver;
@@ -33,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'video' => Video::class,
             'photo' => Photo::class,
-//            'post'  => \App\Models\Post::class,
+            'post'  => Post::class,
         ]);
     }
 }

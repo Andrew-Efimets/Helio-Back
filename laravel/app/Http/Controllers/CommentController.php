@@ -3,36 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Events\CommentCreated;
-use App\Models\Photo;
-use App\Models\Post;
 use App\Models\User;
-use App\Models\Video;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
     public function index(Request $request, User $user, string $type, string $id)
     {
-        $models = [
-            'video' => Video::class,
-            'photo' => Photo::class,
-            'post'  => Post::class,
-        ];
-
-        if (!array_key_exists($type, $models)) {
-            abort(404, "Unknown commentable type");
-        }
-
-        $modelClass = $models[$type];
+        $modelClass = Relation::getMorphedModel($type);
         $commentable = $modelClass::where('user_id', $user->id)->findOrFail($id);
+
         $comments = $commentable->comments()
-            ->with('user.activeAvatar')
+            ->with(['user.activeAvatar'])
             ->latest()
             ->get();
 
         return response()->json([
-            'message' => 'Все комментарии ' . $type . $id,
-            'data' => $comments,
+            'data' => $comments->load(['user.activeAvatar']),
         ], 200);
     }
 
@@ -40,31 +28,29 @@ class CommentController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
+            'parent_id' => 'nullable|exists:comments,id',
         ]);
 
-        $models = [
-            'video' => Video::class,
-            'photo' => Photo::class,
-            'post'  => Post::class,
-        ];
+        $modelClass = Relation::getMorphedModel($type);
 
-        if (!array_key_exists($type, $models)) {
-            abort(404, "Неизвестный объект для комментария");
+        if (!$modelClass) {
+            abort(404, "Неизвестный тип объекта");
         }
-
-        $modelClass = $models[$type];
 
         $commentable = $modelClass::where('user_id', $user->id)->findOrFail($id);
 
         $comment = $commentable->comments()->create([
-            'content' => $validated['content'],
-            'user_id' => auth()->id(),
+            'content'   => $validated['content'],
+            'user_id'   => auth()->id(),
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
+
+        $comment->load(['user.activeAvatar', 'parent.user']);
 
         broadcast(new CommentCreated($comment))->toOthers();
 
         return response()->json([
-            'data' => $comment->load('user.activeAvatar'),
+            'data' => $comment->load(['user.activeAvatar', 'parent.user']),
         ], 201);
     }
 }
