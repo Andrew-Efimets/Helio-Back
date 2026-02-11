@@ -57,9 +57,12 @@ class VideoController extends Controller
         }
     }
 
-    public function show(Video $video)
+    public function show(User $user, Video $video)
     {
-
+        return response()->json([
+           'message' => 'Видео по прямой ссылке',
+            'data' => ['video' => $video]
+        ]);
     }
 
     public function destroy(User $user, Video $video)
