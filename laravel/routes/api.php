@@ -5,6 +5,7 @@ use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
@@ -73,6 +74,8 @@ Route::prefix('/v1')->group(function () {
             Route::middleware('media_privacy')->group(function () {
                 Route::get('/comments', [CommentController::class, 'index']);
                 Route::post('/comments', [CommentController::class, 'store']);
+                Route::get('/likes', [LikeController::class, 'index']);
+                Route::post('/likes', [LikeController::class, 'toggle']);
             });
 
         })->where('type', 'video|photo|post');

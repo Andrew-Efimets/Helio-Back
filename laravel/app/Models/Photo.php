@@ -23,4 +23,9 @@ class Photo extends Model
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
+
+    public function likes(): MorphMany
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
 }
