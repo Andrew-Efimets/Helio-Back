@@ -14,8 +14,13 @@ class LikeController extends Controller
         $modelClass = Relation::getMorphedModel($type);
         $model = $modelClass::findOrFail($id);
 
+        $likes = $model->likes()->with([
+            'user' => fn($query) => $query->select('id', 'name'),
+            'user.activeAvatar'
+        ])->get();
+
         return response()->json([
-            'data' => $model->likes()->with('user.activeAvatar')->get()
+            'data' => $likes
         ]);
     }
 
@@ -32,7 +37,10 @@ class LikeController extends Controller
             $model->likes()->create(['user_id' => $user->id]);
         }
 
-        $like = $model->likes()->with('user.activeAvatar')->get();
+        $like = $model->likes()->with([
+            'user' => fn($query) => $query->select('id', 'name'),
+            'user.activeAvatar'
+        ])->get();
 
         broadcast(new LikesUpdate($like->toArray(), $type, $id))->toOthers();
 
