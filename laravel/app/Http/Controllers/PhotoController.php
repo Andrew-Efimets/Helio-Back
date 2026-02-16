@@ -7,7 +7,6 @@ use App\Jobs\SendPhotoToS3;
 use App\Models\Photo;
 use App\Models\User;
 use App\Traits\HasOwnerStatus;
-use Illuminate\Support\Facades\Storage;
 
 class PhotoController extends Controller
 {

@@ -7,6 +7,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Broadcast;
@@ -52,6 +53,12 @@ Route::prefix('/v1')->group(function () {
                 ->middleware('privacy:show_video');
             Route::post('/video', [VideoController::class, 'store']);
             Route::delete('/video/{video}', [VideoController::class, 'destroy']);
+
+            Route::get('/posts', [PostController::class, 'index'])
+                ->middleware('privacy:show_account');
+            Route::post('/post', [PostController::class, 'store']);
+            Route::patch('/post/{post}', [PostController::class, 'update']);
+            Route::delete('/post/{post}', [PostController::class, 'destroy']);
 
             Route::get('/chats', [ChatController::class, 'index'])
                 ->middleware('privacy:show_chat');

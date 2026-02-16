@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Events\PhotoProcessed;
-use App\Models\Photo;
+use App\Events\PostCreated;
+use App\Models\Post;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
 
-class SendPhotoToS3 implements ShouldQueue
+class SendPostImageToS3 implements ShouldQueue
 {
     use Queueable;
 
@@ -17,7 +17,7 @@ class SendPhotoToS3 implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Photo $photo, public string $tempPath)
+    public function __construct(public Post $post, public string $tempPath)
     {
         //
     }
@@ -27,21 +27,21 @@ class SendPhotoToS3 implements ShouldQueue
      */
     public function handle(): void
     {
-        $user = $this->photo->user;
-        $folder = $user->created_at->format('Y/m/') . $user->id . '/photos';
+        $user = $this->post->user;
+        $folder = $user->created_at->format('Y/m/') . $user->id . '/posts';
         $fileName = basename($this->tempPath);
         $finalS3Path = $folder . '/' . $fileName;
 
         $fileStream = Storage::disk('local')->readStream($this->tempPath);
         Storage::disk('s3')->put($finalS3Path, $fileStream);
 
-        $this->photo->update([
+        $this->post->update([
             'path' => $finalS3Path,
-            'photo_url' => Storage::disk('s3')->url($finalS3Path),
+            'image_url' => Storage::disk('s3')->url($finalS3Path),
         ]);
 
         Storage::disk('local')->delete($this->tempPath);
 
-        broadcast(new PhotoProcessed($this->photo));
+        broadcast(new PostCreated($this->post));
     }
 }
