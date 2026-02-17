@@ -12,9 +12,16 @@ use App\Traits\HasOwnerStatus;
 class PostController extends Controller
 {
     use HasOwnerStatus;
-    public function index()
+    public function index(User $user)
     {
+        $posts = $user->posts()
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
+        return response()->json([
+            'message' => 'Посты успешно получены',
+            'data' => $posts,
+        ]);
     }
 
     public function store(PostRequest $request, User $user)

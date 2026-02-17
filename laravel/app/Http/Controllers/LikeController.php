@@ -29,12 +29,12 @@ class LikeController extends Controller
         $modelClass = Relation::getMorphedModel($type);
         $model = $modelClass::findOrFail($id);
 
-        $like = $model->likes()->where('user_id', $user->id)->first();
+        $like = $model->likes()->where('user_id', auth()->id())->first();
 
         if ($like) {
             $like->delete();
         } else {
-            $model->likes()->create(['user_id' => $user->id]);
+            $model->likes()->create(['user_id' => auth()->id()]);
         }
 
         $like = $model->likes()->with([
