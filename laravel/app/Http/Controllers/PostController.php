@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\PostCreated;
+use App\Events\PostDeleted;
+use App\Events\PostUpdated;
 use App\Http\Requests\PostRequest;
 use App\Jobs\SendPostImageToS3;
 use App\Models\Post;
@@ -54,20 +56,27 @@ class PostController extends Controller
     public function update(PostRequest $request, User $user, Post $post)
     {
         $data = $request->validated();
-        $post = $user->posts()->find($post);
-        $post->update([
-            'content' => $data['content'],
-        ]);
+        $post->update($data);
+
+        broadcast(new PostUpdated($post))->toOthers();
 
         return response()->json([
             'message' => 'Запись обновлена',
-            'data' => $post,
-        ], 201);
+            'data' => $post->fresh(),
+        ], 200);
     }
 
     public function destroy(User $user, Post $post)
     {
+        $postId = $post->id;
+        $userId = $user->id;
 
+        broadcast(new PostDeleted($userId, $postId))->toOthers();
+        $post->delete();
+
+        return response()->json([
+            'message' => 'Запись удалена'
+        ]);
     }
 }
 
