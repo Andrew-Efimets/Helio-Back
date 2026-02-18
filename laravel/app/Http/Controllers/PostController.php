@@ -12,6 +12,7 @@ use App\Traits\HasOwnerStatus;
 class PostController extends Controller
 {
     use HasOwnerStatus;
+
     public function index(User $user)
     {
         $posts = $user->posts()
@@ -41,7 +42,7 @@ class PostController extends Controller
 
             SendPostImageToS3::dispatch($post, $tempPath);
         } else {
-            broadcast(new PostCreated($post));
+            broadcast(new PostCreated($post))->toOthers();
         }
 
         return response()->json([
@@ -50,9 +51,18 @@ class PostController extends Controller
         ], 201);
     }
 
-    public function update(User $user, Post $post)
+    public function update(PostRequest $request, User $user, Post $post)
     {
+        $data = $request->validated();
+        $post = $user->posts()->find($post);
+        $post->update([
+            'content' => $data['content'],
+        ]);
 
+        return response()->json([
+            'message' => 'Запись обновлена',
+            'data' => $post,
+        ], 201);
     }
 
     public function destroy(User $user, Post $post)

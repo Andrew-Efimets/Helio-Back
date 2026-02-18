@@ -31,7 +31,7 @@ class PostCreated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->post->user_id),
+            new Channel('posts.' . $this->post->user_id),
         ];
     }
 
