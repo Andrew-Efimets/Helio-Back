@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckPrivacy
@@ -35,13 +34,6 @@ class CheckPrivacy
 
         $privacy = $targetUser->profile->privacy ?? [];
         $status = $privacy[$key] ?? 'public';
-
-        Log::info('Privacy Check', [
-            'key_from_route' => $key,
-            'privacy_array'  => $privacy,
-            'final_status'   => $status,
-            'target_user_id' => $targetUser->id
-        ]);
 
         if ($status === 'public') {
             return $next($request);

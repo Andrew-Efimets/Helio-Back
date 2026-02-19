@@ -103,6 +103,24 @@ class User extends Authenticatable
             ->wherePivot('status', 'pending');
     }
 
+    public function isContactWith(User $user): bool
+    {
+        if ($this->relationLoaded('contacts')) {
+            return $this->contacts->contains('id', $user->id);
+        }
+
+        return $this->contacts()->where('contact_id', $user->id)->exists();
+    }
+
+    public function contactPivot(): HasOne
+    {
+        return $this->hasOne(Contact::class, 'contact_id', 'id')
+            ->where('user_id', auth()->id())
+            ->orWhere(function($q) {
+                $q->where('contact_id', auth()->id())->whereColumn('user_id', 'id');
+            });
+    }
+
     public function addedBy(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -111,10 +129,5 @@ class User extends Authenticatable
             'contact_id',
             'user_id'
         )->withTimestamps();
-    }
-
-    public function isContactWith($targetId): bool
-    {
-        return $this->contacts()->where('contact_id', $targetId)->exists();
     }
 }

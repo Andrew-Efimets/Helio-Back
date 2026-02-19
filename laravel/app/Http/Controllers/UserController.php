@@ -4,23 +4,55 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserShortResource;
 use App\Models\User;
 use App\Traits\HasOwnerStatus;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     use HasOwnerStatus;
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
-        return response()->json([
-            'users' => UserResource::collection($users)
-        ], 200);
+        $users = User::query()
+            ->where('id', '!=', auth()->id())
+            ->when($request->search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->when($request->city, function ($query, $city) {
+                $query->whereHas('profile', function ($q) use ($city) {
+                    $q->whereRaw("MATCH(city) AGAINST(? IN BOOLEAN MODE)", [$city . '*']);
+                });
+            })
+            ->when($request->country, function ($query, $country) {
+                $query->whereHas('profile', function ($q) use ($country) {
+                    $q->whereRaw("MATCH(country) AGAINST(? IN BOOLEAN MODE)", [$country . '*']);
+                });
+            })
+            ->when($request->age_from || $request->age_to, function ($query) use ($request) {
+                $query->whereHas('profile', function ($q) use ($request) {
+                    $from = $request->age_from ?? 0;
+                    $to = $request->age_to ?? 100;
+
+                    $dateStart = Carbon::now()->subYears($to)->endOfDay();
+                    $dateEnd = Carbon::now()->subYears($from)->startOfDay();
+
+                    $q->whereBetween('birthday', [$dateStart, $dateEnd]);
+                });
+            })
+            ->with(['activeAvatar', 'profile', 'contactPivot'])
+            ->withCount(['photos', 'videos', 'contacts'])
+            ->orderBy('name', 'asc')
+            ->paginate(20);
+
+        return UserShortResource::collection($users);
     }
 
     /**
@@ -28,12 +60,13 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['avatars', 'profile'])
+        $user->load(['avatars', 'profile', 'contactPivot'])
             ->loadCount([
                 'photos',
                 'videos',
                 'contacts',
-                'pending_contacts'
+                'pending_contacts',
+//                'unread_messages',
             ]);
 
         return response()->json([

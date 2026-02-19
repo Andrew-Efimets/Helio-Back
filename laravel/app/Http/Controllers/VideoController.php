@@ -18,7 +18,7 @@ class VideoController extends Controller
     public function index(User $user)
     {
         return response()->json([
-            'message' => 'Запрос сработал',
+            'message' => 'Видеозаписи получены',
             'data' => $user->videos()->get(),
         ]);
     }
