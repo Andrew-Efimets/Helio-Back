@@ -69,7 +69,7 @@ class ContactController extends Controller
             'message' => 'Запрос отправлен',
             'contact_status' => [
                 'type' => 'pending',
-                'is_sender' => true
+                'is_sender' => false
             ],
             'contacts_count' => $user->contacts()->count(),
             'pending_contacts_count' => auth()->user()->pending_contacts()->count()

@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class UserResource extends JsonResource
@@ -18,7 +17,7 @@ class UserResource extends JsonResource
     {
         $me = auth()->id();
         $isMe = $me === $this->id;
-        $pivot = $this->contactPivot;
+        $pivot = $this->getContactStatus();
 
         $permissions = [
             'phone'    =>
@@ -40,7 +39,7 @@ class UserResource extends JsonResource
 
             'contact_status' => $pivot ? [
                 'type' => $pivot->status,
-                'is_sender' => (int)$pivot->user_id === (int)$me,
+                'is_sender' => (int)$pivot->user_id === (int)$this->id,
             ] : null,
 
             'avatar' => $this->activeAvatar?->avatar_url,

@@ -21,6 +21,10 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $direction = in_array(strtolower($request->sort), ['asc', 'desc'])
+            ? $request->sort
+            : 'asc';
+
         $users = User::query()
             ->where('id', '!=', auth()->id())
             ->when($request->search, function ($query, $search) {
@@ -41,15 +45,15 @@ class UserController extends Controller
                     $from = $request->age_from ?? 0;
                     $to = $request->age_to ?? 100;
 
-                    $dateStart = Carbon::now()->subYears($to)->endOfDay();
-                    $dateEnd = Carbon::now()->subYears($from)->startOfDay();
+                    $dateStart = Carbon::now()->subYears($to + 1)->addDay()->format('Y-m-d');
+                    $dateEnd = Carbon::now()->subYears($from)->format('Y-m-d');
 
                     $q->whereBetween('birthday', [$dateStart, $dateEnd]);
                 });
             })
             ->with(['activeAvatar', 'profile', 'contactPivot'])
             ->withCount(['photos', 'videos', 'contacts'])
-            ->orderBy('name', 'asc')
+            ->orderBy('name', $direction)
             ->paginate(20);
 
         return UserShortResource::collection($users);
@@ -60,7 +64,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['avatars', 'profile', 'contactPivot'])
+        $user->load(['avatars', 'profile'])
             ->loadCount([
                 'photos',
                 'videos',

@@ -112,13 +112,18 @@ class User extends Authenticatable
         return $this->contacts()->where('contact_id', $user->id)->exists();
     }
 
-    public function contactPivot(): HasOne
+    public function getContactStatus()
     {
-        return $this->hasOne(Contact::class, 'contact_id', 'id')
-            ->where('user_id', auth()->id())
-            ->orWhere(function($q) {
-                $q->where('contact_id', auth()->id())->whereColumn('user_id', 'id');
-            });
+        $authId = auth()->id();
+        if (!$authId) return null;
+
+        return Contact::where(function($q) use ($authId) {
+            $q->where('user_id', $authId)->where('contact_id', $this->id);
+        })
+            ->orWhere(function($q) use ($authId) {
+                $q->where('user_id', $this->id)->where('contact_id', $authId);
+            })
+            ->first();
     }
 
     public function addedBy(): BelongsToMany
