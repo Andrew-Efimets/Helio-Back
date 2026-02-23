@@ -30,11 +30,24 @@ class ContactDeleted implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        return [new PrivateChannel('user.' . $this->receiverId)];
+        return [
+            new PrivateChannel('user.' . $this->senderId),
+            new PrivateChannel('user.' . $this->receiverId)
+        ];
     }
 
     public function broadcastAs(): string
     {
         return 'contact.deleted';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'senderId'   => $this->senderId,
+            'senderName' => $this->senderName,
+            'receiverId' => $this->receiverId,
+            'status'     => $this->status,
+        ];
     }
 }

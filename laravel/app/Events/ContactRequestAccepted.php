@@ -28,11 +28,23 @@ class ContactRequestAccepted implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        return [new PrivateChannel('user.' . $this->receiverId)];
+        return [
+            new PrivateChannel('user.' . $this->senderId),
+            new PrivateChannel('user.' . $this->receiverId)
+        ];
     }
 
     public function broadcastAs(): string
     {
         return 'contact.accepted';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'senderId'   => $this->senderId,
+            'receiverId' => $this->receiverId,
+            'message'    => 'Запрос принят',
+        ];
     }
 }

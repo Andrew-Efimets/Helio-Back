@@ -21,39 +21,11 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $direction = in_array(strtolower($request->sort), ['asc', 'desc'])
-            ? $request->sort
-            : 'asc';
-
         $users = User::query()
             ->where('id', '!=', auth()->id())
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
-            })
-            ->when($request->city, function ($query, $city) {
-                $query->whereHas('profile', function ($q) use ($city) {
-                    $q->whereRaw("MATCH(city) AGAINST(? IN BOOLEAN MODE)", [$city . '*']);
-                });
-            })
-            ->when($request->country, function ($query, $country) {
-                $query->whereHas('profile', function ($q) use ($country) {
-                    $q->whereRaw("MATCH(country) AGAINST(? IN BOOLEAN MODE)", [$country . '*']);
-                });
-            })
-            ->when($request->age_from || $request->age_to, function ($query) use ($request) {
-                $query->whereHas('profile', function ($q) use ($request) {
-                    $from = $request->age_from ?? 0;
-                    $to = $request->age_to ?? 100;
-
-                    $dateStart = Carbon::now()->subYears($to + 1)->addDay()->format('Y-m-d');
-                    $dateEnd = Carbon::now()->subYears($from)->format('Y-m-d');
-
-                    $q->whereBetween('birthday', [$dateStart, $dateEnd]);
-                });
-            })
-            ->with(['activeAvatar', 'profile', 'contactPivot'])
-            ->withCount(['photos', 'videos', 'contacts'])
-            ->orderBy('name', $direction)
+            ->filtered($request)
+            ->withBaseData()
+            ->orderBy('name', $request->query('sort', 'asc'))
             ->paginate(20);
 
         return UserShortResource::collection($users);
@@ -64,14 +36,14 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['avatars', 'profile'])
-            ->loadCount([
+        $user = User::withSymmetricContactsCount()
+            ->withCount([
                 'photos',
                 'videos',
-                'contacts',
-                'pending_contacts',
-//                'unread_messages',
-            ]);
+                'pending_contacts'
+            ])
+            ->with(['avatars', 'profile'])
+            ->find($user->id);
 
         return response()->json([
             'message' => 'Переданы данные пользователя',

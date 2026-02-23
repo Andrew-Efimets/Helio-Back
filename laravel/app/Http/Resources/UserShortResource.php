@@ -14,8 +14,7 @@ class UserShortResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $me = auth()->id();
-        $pivot = $this->contactPivot;
+        $pivot = $this->getContactStatus();
 
         return [
             'id' => $this->id,
@@ -23,7 +22,7 @@ class UserShortResource extends JsonResource
 
             'contact_status' => $pivot ? [
                 'type' => $pivot->status,
-                'is_sender' => (int)$pivot->user_id === (int)$me,
+                'is_sender' => (int)$pivot->user_id === (int)$this->id,
             ] : null,
 
             'avatar' => $this->activeAvatar?->avatar_url,
