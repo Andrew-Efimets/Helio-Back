@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class UserPolicy
 {
@@ -30,11 +31,9 @@ class UserPolicy
         if ($setting === 'public') return true;
 
         if ($setting === 'contacts_only') {
-            if ($model->relationLoaded('contactPivot')) {
-                return $model->contactPivot !== null && $model->contactPivot->status === 'accepted';
-            }
+            $contact = $model->getContactStatusFor($user);
 
-            return $model->isContactWith($user);
+            return $contact !== null && $contact->status === 'accepted';
         }
 
         return false;

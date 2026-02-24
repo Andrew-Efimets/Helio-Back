@@ -75,6 +75,18 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
 
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function chats(): BelongsToMany
+    {
+        return $this->belongsToMany(Chat::class, 'chat_user')
+            ->withPivot(['role', 'status', 'deleted_at'])
+            ->withTimestamps();
+    }
+
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
@@ -134,14 +146,6 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function isContactWith(User $user): bool
-    {
-        if ($this->relationLoaded('contacts')) {
-            return $this->contacts->contains('id', $user->id);
-        }
-
-        return $this->contacts()->where('contact_id', $user->id)->exists();
-    }
 
     public function getContactStatus()
     {
@@ -153,6 +157,18 @@ class User extends Authenticatable
         })
             ->orWhere(function ($q) use ($authId) {
                 $q->where('user_id', $this->id)->where('contact_id', $authId);
+            })
+            ->first();
+    }
+
+    public function getContactStatusFor(User $contact)
+    {
+        return DB::table('contacts')
+            ->where(function ($q) use ($contact) {
+                $q->where('user_id', $this->id)->where('contact_id', $contact->id);
+            })
+            ->orWhere(function ($q) use ($contact) {
+                $q->where('user_id', $contact->id)->where('contact_id', $this->id);
             })
             ->first();
     }
