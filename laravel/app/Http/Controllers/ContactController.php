@@ -44,15 +44,20 @@ class ContactController extends Controller
         if ($pivot) {
             $status = $pivot->status;
 
+            $isInitiator = (int)$pivot->user_id === (int)$me->id;
+
             DB::table('contacts')->where('id', $pivot->id)->delete();
 
-            broadcast(new ContactDeleted($me, $user->id, $status));
+            broadcast(new ContactDeleted($me, $user->id, $status, $isInitiator));
 
             return response()->json([
-                'message' => $status === 'accepted' ? 'Контакт удалён' : 'Запрос отменён',
+                'message' => $status === 'accepted'
+                    ? 'Контакт удалён'
+                    : ($isInitiator ? 'Запрос отменён' : 'Запрос отклонен'),
                 'contact_status' => null,
                 'contacts_count' => $this->getSymmetricCount($user, 'accepted'),
-                'pending_contacts_count' => $this->getSymmetricCount($me, 'pending', 'receiver')
+                'pending_contacts_count' => $this
+                    ->getSymmetricCount($me, 'pending', 'receiver')
             ]);
         }
 
@@ -64,7 +69,8 @@ class ContactController extends Controller
             'message' => 'Запрос отправлен',
             'contact_status' => ['type' => 'pending', 'is_sender' => false],
             'contacts_count' => $this->getSymmetricCount($user, 'accepted'),
-            'pending_contacts_count' => $this->getSymmetricCount($me, 'pending', 'receiver')
+            'pending_contacts_count' => $this
+                ->getSymmetricCount($me, 'pending', 'receiver')
         ]);
     }
 
@@ -98,15 +104,15 @@ class ContactController extends Controller
         ]);
     }
 
-    private function getSymmetricCount(User $u, $status, $type = 'all')
+    private function getSymmetricCount(User $user, $status, $type = 'all')
     {
         $q = DB::table('contacts')->where('status', $status);
         if ($type === 'receiver') {
-            return $q->where('contact_id', $u->id)->count();
+            return $q->where('contact_id', $user->id)->count();
         }
         return $q->where(fn($query) => $query
-            ->where('user_id', $u->id)
-            ->orWhere('contact_id', $u->id))
+            ->where('user_id', $user->id)
+            ->orWhere('contact_id', $user->id))
             ->count();
     }
 }

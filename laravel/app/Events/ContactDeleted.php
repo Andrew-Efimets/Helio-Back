@@ -18,14 +18,21 @@ class ContactDeleted implements ShouldBroadcast
     public int $senderId;
     public string $senderName;
     public int $receiverId;
+    public bool $isInitiator;
     public string $status;
 
-    public function __construct(User $sender, int $receiverId, string $status)
+    public function __construct(
+        User $sender,
+        int $receiverId,
+        string $status,
+        bool $isInitiator
+    )
     {
         $this->senderId = $sender->id;
         $this->senderName = $sender->name;
         $this->receiverId = $receiverId;
         $this->status = $status;
+        $this->isInitiator = $isInitiator;
     }
 
     public function broadcastOn(): array
@@ -48,6 +55,7 @@ class ContactDeleted implements ShouldBroadcast
             'senderName' => $this->senderName,
             'receiverId' => $this->receiverId,
             'status'     => $this->status,
+            'isInitiator' => $this->isInitiator,
         ];
     }
 }
