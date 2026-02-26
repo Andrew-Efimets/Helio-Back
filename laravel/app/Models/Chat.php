@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Chat extends Model
 {
+    protected $fillable = [
+        'type',
+        'title',
+        'avatar',
+    ];
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'chat_user')

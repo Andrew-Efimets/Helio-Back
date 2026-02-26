@@ -60,10 +60,8 @@ Route::prefix('/v1')->group(function () {
             Route::patch('/post/{post}', [PostController::class, 'update']);
             Route::delete('/post/{post}', [PostController::class, 'destroy']);
 
-            Route::get('/chats', [ChatController::class, 'index'])
-                ->middleware('privacy:show_chat');
-            Route::get('/chat/{chat}', [ChatController::class, 'show'])
-                ->middleware('privacy:show_chat');
+            Route::get('/chats', [ChatController::class, 'index']);
+            Route::get('/chat/{chat}', [ChatController::class, 'show']);
             Route::post('/chat', [ChatController::class, 'store']);
             Route::patch('/chat', [ChatController::class, 'update']);
             Route::delete('/chat', [ChatController::class, 'destroy']);
