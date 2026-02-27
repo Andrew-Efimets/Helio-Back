@@ -6,6 +6,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
@@ -65,6 +66,10 @@ Route::prefix('/v1')->group(function () {
             Route::post('/chat', [ChatController::class, 'store']);
             Route::patch('/chat', [ChatController::class, 'update']);
             Route::delete('/chat', [ChatController::class, 'destroy']);
+
+            Route::post('/chat/{chat}/messages', [MessageController::class, 'store']);
+            Route::patch('/chat/{chat}/messages', [MessageController::class, 'update']);
+            Route::delete('/chat/{chat}/messages', [MessageController::class, 'destroy']);
         });
 
         Route::prefix('/profile/{user}')->group(function () {

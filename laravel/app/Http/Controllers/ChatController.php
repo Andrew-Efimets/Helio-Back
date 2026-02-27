@@ -36,12 +36,21 @@ class ChatController extends Controller
             ->where('user_id', '!=', auth()->id())
             ->first();
 
+        $messages = $chat->messages()
+            ->with('user')
+            ->latest()
+            ->paginate(20);
+
+        $messages->setCollection(
+            $messages->getCollection()->reverse()->values()
+        );
+
         return response()->json([
             'data' => [
                 'id' => $chat->id,
                 'companion_name' => $companion?->name,
                 'companion_avatar' => $companion?->activeAvatar?->avatar_url,
-                'messages' => $chat->messages()->latest()->paginate(50)
+                'messages' => $messages,
             ]
         ]);
     }
