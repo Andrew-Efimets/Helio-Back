@@ -32,10 +32,6 @@ class ChatController extends Controller
 
     public function show(User $user, Chat $chat)
     {
-        $companion = $chat->users()
-            ->where('user_id', '!=', auth()->id())
-            ->first();
-
         $messages = $chat->messages()
             ->with('user')
             ->latest()
@@ -45,12 +41,23 @@ class ChatController extends Controller
             $messages->getCollection()->reverse()->values()
         );
 
+        $participants = $chat->users()
+            ->with('activeAvatar')
+            ->get()
+            ->map(function ($participant) {
+                return [
+                    'id' => $participant->id,
+                    'name' => $participant->name,
+                    'avatar' => $participant->activeAvatar?->avatar_url,
+                ];
+            });
+
         return response()->json([
             'data' => [
                 'id' => $chat->id,
-                'companion_name' => $companion?->name,
-                'companion_avatar' => $companion?->activeAvatar?->avatar_url,
+                'type' => $chat->type,
                 'messages' => $messages,
+                'participants' => $participants,
             ]
         ]);
     }
