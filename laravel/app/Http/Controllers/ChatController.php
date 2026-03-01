@@ -8,19 +8,39 @@ use Illuminate\Http\Request;
 
 class ChatController extends Controller
 {
-    public function store(User $user)
+    public function index(Request $request)
+    {
+        $chats = Chat::whereHas('users', function ($query) {
+            $query->where('user_id', auth()->id());
+        })
+            ->when($request->type, function ($query, $type) {
+                $query->where('type', $type);
+            })
+            ->with(['users.activeAvatar', 'messages' => function($q) {
+                $q->latest()->first();
+            }])
+            ->latest('updated_at')
+            ->get();
+
+        return response()->json([
+            'data' => $chats
+        ]);
+    }
+
+    public function store(Request $request)
     {
         $initiator = auth()->id();
+        $contact = $request->contactId;
         $chat = Chat::whereHas('users', function ($q) use ($initiator) {
             $q->where('user_id', $initiator);
-        })->whereHas('users', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
+        })->whereHas('users', function ($q) use ($contact) {
+            $q->where('user_id', $contact);
         })->where('type', 'private')
             ->first();
 
         if (!$chat) {
             $chat = Chat::create(['type' => 'private']);
-            $chat->users()->attach([$initiator, $user->id]);
+            $chat->users()->attach([$initiator, $contact]);
         }
 
         return response()->json([
@@ -30,7 +50,7 @@ class ChatController extends Controller
         ]);
     }
 
-    public function show(User $user, Chat $chat)
+    public function show(Chat $chat)
     {
         $messages = $chat->messages()
             ->with('user')

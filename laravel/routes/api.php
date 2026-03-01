@@ -60,17 +60,20 @@ Route::prefix('/v1')->group(function () {
             Route::post('/post', [PostController::class, 'store']);
             Route::patch('/post/{post}', [PostController::class, 'update']);
             Route::delete('/post/{post}', [PostController::class, 'destroy']);
+        });
 
-            Route::get('/chats', [ChatController::class, 'index']);
+        Route::prefix('/chats')->group(function () {
+            Route::get('/', [ChatController::class, 'index']);
             Route::get('/chat/{chat}', [ChatController::class, 'show']);
             Route::post('/chat', [ChatController::class, 'store']);
-            Route::patch('/chat', [ChatController::class, 'update']);
-            Route::delete('/chat', [ChatController::class, 'destroy']);
-
+            Route::patch('/chat/{chat}', [ChatController::class, 'update']);
+            Route::delete('/chat/{chat}', [ChatController::class, 'destroy']);
             Route::post('/chat/{chat}/messages', [MessageController::class, 'store']);
             Route::patch('/chat/{chat}/messages', [MessageController::class, 'update']);
             Route::delete('/chat/{chat}/messages', [MessageController::class, 'destroy']);
         });
+
+
 
         Route::prefix('/profile/{user}')->group(function () {
             Route::get('/avatars', [AvatarController::class, 'index']);

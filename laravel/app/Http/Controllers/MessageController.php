@@ -12,7 +12,7 @@ class MessageController extends Controller
 {
     use HasOwnerStatus;
 
-    public function store(Request $request, User $user, Chat $chat)
+    public function store(Request $request, Chat $chat)
     {
         $this->checkOwner($chat);
 
@@ -33,7 +33,7 @@ class MessageController extends Controller
 
     }
 
-    public function update(Request $request, User $user, Chat $chat)
+    public function update(Request $request, Chat $chat)
     {
 
     }
