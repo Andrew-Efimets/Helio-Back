@@ -69,8 +69,8 @@ Route::prefix('/v1')->group(function () {
             Route::patch('/chat/{chat}', [ChatController::class, 'update']);
             Route::delete('/chat/{chat}', [ChatController::class, 'destroy']);
             Route::post('/chat/{chat}/messages', [MessageController::class, 'store']);
-            Route::patch('/chat/{chat}/messages', [MessageController::class, 'update']);
-            Route::delete('/chat/{chat}/messages', [MessageController::class, 'destroy']);
+            Route::patch('/chat/{chat}/messages/{message}', [MessageController::class, 'update']);
+            Route::delete('/chat/{chat}/messages/{message}', [MessageController::class, 'destroy']);
         });
 
 

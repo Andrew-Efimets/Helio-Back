@@ -11,12 +11,21 @@ class Message extends Model
         'content',
         'chat_id',
         'user_id',
-        'read_at'
+        'read_at',
+        'parent_id',
+        'parent_content',
+        'parent_user_name',
+        'parent_user_avatar',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
     ];
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Message::class, 'parent_id');
+    }
 
     public function chat(): BelongsTo
     {
