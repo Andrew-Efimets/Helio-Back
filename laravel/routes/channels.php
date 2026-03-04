@@ -13,3 +13,7 @@ Broadcast::channel('chats.{id}', function ($user, $id) {
             $q->where('users.id', (int) $user->id);
         })->exists();
 });
+
+Broadcast::channel('online', function ($user) {
+    return ['id' => $user->id];
+});
