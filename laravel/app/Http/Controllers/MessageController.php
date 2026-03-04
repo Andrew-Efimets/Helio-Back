@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageCreated;
 use App\Events\MessageDeleted;
+use App\Events\MessageReceived;
 use App\Events\MessageUpdated;
 use App\Models\Chat;
 use App\Models\Message;
@@ -48,6 +49,12 @@ class MessageController extends Controller
 
         $message->load('user.activeAvatar');
 
+        $participants = $chat->users()->where('user_id', '!=', auth()->id())->get();
+
+        foreach ($participants as $participant) {
+            broadcast(new MessageReceived($message, $participant->id))->toOthers();
+        }
+
         broadcast(new MessageCreated($message))->toOthers();
 
         return response()->json([
@@ -79,7 +86,12 @@ class MessageController extends Controller
         $this->checkOwner($message);
         $messageId = $message->id;
         $message->delete();
-        broadcast(new MessageDeleted($chat->id, $messageId))->toOthers();
+
+        $participants = $chat->users()->where('user_id', '!=', auth()->id())->get();
+
+        foreach ($participants as $participant) {
+            broadcast(new MessageDeleted($chat->id, $messageId, $participant->id))->toOthers();
+        }
         return response()->json([
             'message' => 'Cообщение удалено',
         ]);

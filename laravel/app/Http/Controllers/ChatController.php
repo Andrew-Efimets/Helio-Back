@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageRead;
 use App\Models\Chat;
 use Illuminate\Http\Request;
 
@@ -9,15 +10,19 @@ class ChatController extends Controller
 {
     public function index(Request $request)
     {
-        $chats = Chat::whereHas('users', function ($query) {
-            $query->where('user_id', auth()->id());
+        $myId = auth()->id();
+
+        $chats = Chat::whereHas('users', function ($query) use ($myId) {
+            $query->where('user_id', $myId);
         })
-            ->when($request->type, function ($query, $type) {
+            ->when($request->has('type') && $request->type !== null, function ($query, $type) {
                 $query->where('type', $type);
             })
-            ->with(['users.activeAvatar', 'messages' => function($q) {
-                $q->latest()->first();
+            ->withCount(['messages as unread_count' => function ($query) use ($myId) {
+                $query->where('user_id', '!=', $myId)
+                    ->whereNull('read_at');
             }])
+            ->with(['users.activeAvatar', 'latestMessage.user'])
             ->latest('updated_at')
             ->get();
 
@@ -56,6 +61,15 @@ class ChatController extends Controller
             ->latest()
             ->paginate(20);
 
+        $read = $chat->messages()
+            ->where('user_id', '!=', auth()->id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        if ($read > 0) {
+            broadcast(new MessageRead($chat->id, now()->toISOString()))->toOthers();
+        }
+
         $messages->setCollection(
             $messages->getCollection()->reverse()->values()
         );
@@ -79,5 +93,17 @@ class ChatController extends Controller
                 'participants' => $participants,
             ]
         ]);
+    }
+
+    public function markRead(Chat $chat)
+    {
+        $chat->messages()
+            ->where('user_id', '!=', auth()->id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        broadcast(new MessageRead($chat->id, now()->toISOString()))->toOthers();
+
+        return response()->json(['status' => 'success']);
     }
 }
