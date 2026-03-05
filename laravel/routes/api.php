@@ -66,9 +66,11 @@ Route::prefix('/v1')->group(function () {
             Route::get('/', [ChatController::class, 'index']);
             Route::get('/chat/{chat}', [ChatController::class, 'show']);
             Route::post('/chat', [ChatController::class, 'store']);
+            Route::post('/group', [ChatController::class, 'storeGroup']);
             Route::patch('/chat/{chat}', [ChatController::class, 'update']);
             Route::delete('/chat/{chat}', [ChatController::class, 'destroy']);
             Route::post('/chat/{chat}/read', [ChatController::class, 'markRead']);
+            Route::post('/chat/{chat}/leave', [ChatController::class, 'leaveChat']);
             Route::post('/chat/{chat}/messages', [MessageController::class, 'store']);
             Route::patch('/chat/{chat}/messages/{message}', [MessageController::class, 'update']);
             Route::delete('/chat/{chat}/messages/{message}', [MessageController::class, 'destroy']);
