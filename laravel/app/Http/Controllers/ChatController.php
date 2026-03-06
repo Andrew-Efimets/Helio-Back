@@ -86,6 +86,7 @@ class ChatController extends Controller
         return response()->json([
             'data' => [
                 'id' => $chat->id,
+                'type' => $chat->type,
                 'title' => $chat->title,
                 'avatar' => $chat->avatar,
             ]
@@ -120,6 +121,7 @@ class ChatController extends Controller
                     'id' => $participant->id,
                     'name' => $participant->name,
                     'avatar' => $participant->activeAvatar?->avatar_url,
+                    'role' => $participant->pivot->role,
                 ];
             });
 
@@ -127,6 +129,8 @@ class ChatController extends Controller
             'data' => [
                 'id' => $chat->id,
                 'type' => $chat->type,
+                'title' => $chat->title,
+                'avatar' => $chat->avatar,
                 'messages' => $messages,
                 'participants' => $participants,
             ]
@@ -143,6 +147,46 @@ class ChatController extends Controller
         broadcast(new MessageRead($chat->id, now()->toISOString()))->toOthers();
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function update(Request $request, Chat $chat)
+    {
+        $isAdmin = $chat->users()
+            ->where('users.id', auth()->id())
+            ->wherePivot('role', 'admin')
+            ->exists();
+
+        if (!$isAdmin) {
+            return response()->json(['message' => 'У вас нет прав администратора'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:100',
+            'avatar' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->has('title')) {
+            $chat->update(['title' => $validated['title']]);
+        }
+
+        if ($request->hasFile('avatar')) {
+
+            $folder = now()->format('Y/m/') . 'chat' . $chat->id . '/avatar';
+            $path = $request->file('avatar')->store($folder, 's3');
+
+            $chat->update([
+                'avatar' => Storage::disk('s3')->url($path),
+            ]);
+        }
+
+        return response()->json([
+            'data' => [
+                'id'     => $chat->id,
+                'type'   => $chat->type,
+                'title'  => $chat->title,
+                'avatar' => $chat->avatar,
+            ]
+        ]);
     }
 
     public function leaveChat(Chat $chat)
