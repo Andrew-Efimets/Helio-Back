@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\ChatCreated;
 use App\Events\MessageRead;
 use App\Models\Chat;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -67,19 +68,19 @@ class ChatController extends Controller
         ]);
 
         $chat = Chat::create([
-            'type'    => 'group',
-            'title'   => $validated['title'],
+            'type' => 'group',
+            'title' => $validated['title'],
         ]);
 
         if ($request->hasFile('avatar')) {
-            $folder = now()->format('Y/m/'). 'chat' . $chat->id . '/avatar';
+            $folder = now()->format('Y/m/') . 'chat' . $chat->id . '/avatar';
             $path = $request->file('avatar')->store($folder, 's3');
             $chat->avatar = Storage::disk('s3')->url($path);
             $chat->save();
         }
 
         $chat->users()->attach(auth()->id(), [
-            'role'   => 'admin',
+            'role' => 'admin',
             'status' => 'active'
         ]);
 
@@ -181,9 +182,9 @@ class ChatController extends Controller
 
         return response()->json([
             'data' => [
-                'id'     => $chat->id,
-                'type'   => $chat->type,
-                'title'  => $chat->title,
+                'id' => $chat->id,
+                'type' => $chat->type,
+                'title' => $chat->title,
                 'avatar' => $chat->avatar,
             ]
         ]);
@@ -224,5 +225,41 @@ class ChatController extends Controller
         }
 
         return response()->json(['message' => 'Вы покинули чат']);
+    }
+
+    public function addMember(Chat $chat, User $user)
+    {
+        if ($chat->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'Пользователь уже в чате'], 422);
+        }
+
+        $chat->users()->attach($user->id);
+
+        return response()->json([
+            'message' => 'Участник успешно добавлен',
+            'data' => $chat,
+            'newMember' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => $user->activeAvatar?->avatar_url,
+            ],
+        ], 201);
+    }
+
+    public function deleteMember(Chat $chat, User $user)
+    {
+        $deleted = $chat->users()->detach($user->id);
+
+        if (!$deleted) {
+            return response()->json([
+                'message' => 'Пользователь не найден в этом чате'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Участник удалён',
+            'deletedId' => $user->id,
+            'data' => $chat,
+        ], 200);
     }
 }
