@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -20,8 +21,9 @@ class MemberAdded implements ShouldBroadcast
     public function __construct(
         public $chatId,
         public $chatTitle,
+        public $initiatorId,
         public $initiatorName,
-        public $receiverId
+        public User $newMember
     )
     {
 
@@ -34,7 +36,10 @@ class MemberAdded implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [new PrivateChannel('user.' . $this->receiverId)];
+        return [
+            new PrivateChannel('chats.' . $this->chatId),
+            new PrivateChannel('user.' . $this->newMember->id),
+        ];
     }
 
     public function broadcastAs()
@@ -47,8 +52,13 @@ class MemberAdded implements ShouldBroadcast
         return [
             'chatId' => $this->chatId,
             'chatTitle' => $this->chatTitle,
+            'initiatorId' => $this->initiatorId,
             'initiatorName' => $this->initiatorName,
-            'receiverId' => $this->receiverId
+            'newMember' => [
+                'id' => $this->newMember->id,
+                'name' => $this->newMember->name,
+                'avatar' => $this->newMember->activeAvatar?->avatar_url,
+            ],
         ];
     }
 }

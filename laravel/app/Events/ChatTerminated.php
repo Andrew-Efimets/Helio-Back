@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MemberDeleted implements ShouldBroadcast
+class ChatTerminated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,10 +19,10 @@ class MemberDeleted implements ShouldBroadcast
      */
     public function __construct(
         public $chatId,
-        public $chatTitle,
-        public $deletedId,
-        public $deletedName,
-        public $initiatorId,
+        public $type,
+        public $userId = null,
+        public $userName = null,
+        public $participant = null,
     )
     {
 
@@ -35,25 +35,25 @@ class MemberDeleted implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('chats.' . $this->chatId),
-            new PrivateChannel('user.' . $this->deletedId),
-        ];
+        $channels = [new PrivateChannel('chats.' . $this->chatId)];
+        if ($this->participant) {
+            $channels[] = new PrivateChannel('user.' . $this->participant->id);
+        }
+        return $channels;
     }
 
     public function broadcastAs()
     {
-        return 'member.deleted';
+        return 'chat.terminated';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'chatId' => $this->chatId,
-            'chatTitle' => $this->chatTitle,
-            'deletedId' => $this->deletedId,
-            'deletedName' => $this->deletedName,
-            'initiatorId' => $this->initiatorId,
+            'chatId'   => $this->chatId,
+            'type'     => $this->type,
+            'userId'   => $this->userId,
+            'userName' => $this->userName,
         ];
     }
 }

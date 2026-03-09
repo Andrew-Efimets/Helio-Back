@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ChatCreated;
+use App\Events\ChatTerminated;
 use App\Events\MemberAdded;
 use App\Events\MemberDeleted;
 use App\Events\MessageRead;
@@ -203,20 +204,36 @@ class ChatController extends Controller
     public function leaveChat(Chat $chat)
     {
         $myId = auth()->id();
+        $myName = auth()->user()->name;
+        $participants = $chat->users()->get();
 
         if ($chat->type === 'group') {
             $me = $chat->users()->where('users.id', $myId)->first();
 
             if (!$me) {
-                return response()->json(['message' => 'Вы не являетесь участником чата'], 403);
+                return response()->json([
+                    'message' => 'Вы не являетесь участником чата'
+                ], 403);
             }
 
             if ($me->pivot->role === 'admin') {
                 $chat->delete();
+
+                foreach ($participants as $participant) {
+                    broadcast(new ChatTerminated(
+                        $chat->id,
+                        'group_deleted',
+                        null,
+                        null,
+                        $participant
+                    ));
+                }
                 return response()->json(['message' => 'Группа удалена']);
             }
 
             $chat->users()->detach($myId);
+            broadcast(new ChatTerminated($chat->id, 'member_left', $myId, $myName))
+                ->toOthers();
             return response()->json(['message' => 'Вы покинули группу']);
         }
 
@@ -245,7 +262,13 @@ class ChatController extends Controller
 
         $chat->users()->attach($user->id);
 
-        broadcast(new MemberAdded($chat->id, $chat->title, auth()->user()->name, $user->id))
+        broadcast(new MemberAdded(
+            $chat->id,
+            $chat->title,
+            auth()->id(),
+            auth()->user()->name,
+            $user
+        ))
             ->toOthers();
 
         return response()->json([
@@ -269,7 +292,14 @@ class ChatController extends Controller
             ], 404);
         }
 
-        broadcast(new MemberDeleted($chat->id, $chat->title, $user->id));
+        broadcast(new MemberDeleted(
+            $chat->id,
+            $chat->title,
+            $user->id,
+            $user->name,
+            auth()->id()
+        ))
+            ->toOthers();
 
         return response()->json([
             'message' => 'Участник удалён',
