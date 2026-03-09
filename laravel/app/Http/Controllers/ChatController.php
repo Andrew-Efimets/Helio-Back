@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\ChatCreated;
+use App\Events\MemberAdded;
+use App\Events\MemberDeleted;
 use App\Events\MessageRead;
 use App\Models\Chat;
 use App\Models\User;
@@ -96,6 +98,14 @@ class ChatController extends Controller
 
     public function show(Chat $chat)
     {
+        $isParticipant = $chat->users()->where('user_id', auth()->id())->exists();
+
+        if (!$isParticipant) {
+            return response()->json([
+                'message' => 'У вас нет доступа к этому чату'
+            ], 403);
+        }
+
         $messages = $chat->messages()
             ->with('user')
             ->latest()
@@ -206,7 +216,7 @@ class ChatController extends Controller
                 return response()->json(['message' => 'Группа удалена']);
             }
 
-            $chat->users()->updateExistingPivot($myId, ['deleted_at' => now()]);
+            $chat->users()->detach($myId);
             return response()->json(['message' => 'Вы покинули группу']);
         }
 
@@ -235,6 +245,9 @@ class ChatController extends Controller
 
         $chat->users()->attach($user->id);
 
+        broadcast(new MemberAdded($chat->id, $chat->title, auth()->user()->name, $user->id))
+            ->toOthers();
+
         return response()->json([
             'message' => 'Участник успешно добавлен',
             'data' => $chat,
@@ -255,6 +268,8 @@ class ChatController extends Controller
                 'message' => 'Пользователь не найден в этом чате'
             ], 404);
         }
+
+        broadcast(new MemberDeleted($chat->id, $chat->title, $user->id));
 
         return response()->json([
             'message' => 'Участник удалён',
