@@ -49,7 +49,9 @@ class MessageController extends Controller
 
         $message->load('user.activeAvatar');
 
-        $participants = $chat->users()->where('user_id', '!=', auth()->id())->get();
+        $participants = $chat->users()
+            ->where('user_id', '!=', auth()->id())
+            ->get();
 
         foreach ($participants as $participant) {
             broadcast(new MessageReceived($message, $participant->id))->toOthers();
@@ -78,7 +80,7 @@ class MessageController extends Controller
 
         return response()->json([
             'data' => $message,
-        ], 201);
+        ], 200);
     }
 
     public function destroy(Chat $chat, Message $message)

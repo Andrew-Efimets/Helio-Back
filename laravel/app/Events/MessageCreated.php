@@ -21,7 +21,7 @@ class MessageCreated implements ShouldBroadcast
      */
     public function __construct(Message $message)
     {
-        $this->message = $message->load('user');
+        $this->message = $message->load('user.activeAvatar');
     }
 
     /**
@@ -39,5 +39,29 @@ class MessageCreated implements ShouldBroadcast
     public function broadcastAs(): string
     {
         return 'message.created';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'message' => [
+                'id' => $this->message->id,
+                'chat_id' => $this->message->chat_id,
+                'user_id' => $this->message->user_id,
+                'content' => $this->message->content,
+                'created_at' => $this->message->created_at,
+                'parent_id' => $this->message->parent_id,
+                'parent_content' => $this->message->parent_content,
+                'parent_user_name' => $this->message->parent_user_name,
+                'parent_user_avatar' => $this->message->parent_user_avatar,
+                'user' => [
+                    'id' => $this->message->user->id,
+                    'name' => $this->message->user->name,
+                    'active_avatar' => [
+                        'avatar_url' => $this->message->user->activeAvatar?->avatar_url
+                    ]
+                ]
+            ]
+        ];
     }
 }

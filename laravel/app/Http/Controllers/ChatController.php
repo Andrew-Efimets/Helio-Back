@@ -108,7 +108,14 @@ class ChatController extends Controller
         }
 
         $messages = $chat->messages()
-            ->with('user')
+            ->with([
+                'user' => function($query) {
+                    $query->select('id', 'name');
+                },
+                'user.activeAvatar' => function($query) {
+                    $query->select('id', 'user_id', 'avatar_url');
+                }
+            ])
             ->latest()
             ->paginate(20);
 
