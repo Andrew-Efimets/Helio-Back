@@ -20,10 +20,9 @@ class ContactController extends Controller
                 $user,
                 $request->query('contact_status', 'accepted')
             )
-            ->filtered($request)
             ->withBaseData()
             ->orderBy('name', $request->query('sort', 'asc'))
-            ->paginate(20);
+            ->get();
 
         return UserShortResource::collection($users);
     }
