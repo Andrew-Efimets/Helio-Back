@@ -23,9 +23,13 @@ Route::get('/login', function () {
 Route::prefix('/v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify', [AuthController::class, 'verify'])
-        ->middleware('throttle:60,1');
+        ->middleware('throttle:20,1');
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:60,1');
+        ->middleware('throttle:20,1');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:20,1');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:20,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);

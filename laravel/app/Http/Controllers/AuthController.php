@@ -67,20 +67,23 @@ class AuthController extends Controller
 
         $user = User::where('phone', $phone)->firstOrFail();
 
-        $user->update([
-            'phone_verified_at' => now(),
-        ]);
+        if ($request->boolean('reset')) {
+            return response()->json([
+                'message' => 'Код подтвержден, введите новый пароль',
+                'data' => ['id' => $user->id]
+            ]);
+        }
 
-        Redis::del("sms_code:{$phone}");
+        $user->update(['phone_verified_at' => now()]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
+        Redis::del("sms_code:{$phone}");
+
         return response()->json([
             'message' => 'Вход выполнен успешно',
-            'data' => [
-                'id' => $user->id,
-            ]
+            'data' => ['id' => $user->id]
         ]);
     }
 
@@ -94,5 +97,61 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Выход выполнен успешно',
         ], 200);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|min:10',
+        ]);
+
+        $phone = $request->phone;
+
+        $user = User::where('phone', $phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Пользователь с таким номером не найден'
+            ], 404);
+        }
+
+        SmsService::sendSms($user);
+
+        return response()->json([
+            'message' => 'Код восстановления отправлен на ваш номер',
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'password' => 'required|string|min:6',
+            'code' => 'required|string|size:4',
+        ]);
+
+        $phone = $request->phone;
+        $inputCode = $request->code;
+
+        $cachedCode = Redis::get("sms_code:{$phone}");
+
+        if (!$cachedCode || $cachedCode !== $inputCode) {
+            return response()->json([
+                'message' => 'Неверный или просроченный код подтверждения'
+            ], 422);
+        }
+
+        $user = User::where('phone', $phone)->firstOrFail();
+
+        $user->update([
+            'password' => Hash::make($request->password),
+            'phone_verified_at' => now(),
+        ]);
+
+        Redis::del("sms_code:{$phone}");
+
+        return response()->json([
+            'message' => 'Пароль успешно изменен. Теперь вы можете войти.'
+        ]);
     }
 }
