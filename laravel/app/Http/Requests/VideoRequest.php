@@ -26,7 +26,7 @@ class VideoRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:mp4,mov,avi,mpeg',
-                'max:1024000',
+                'max:2048000',
             ],
         ];
     }
@@ -34,7 +34,7 @@ class VideoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'video.max' => 'Видео слишком большое (макс. 1ГБ)',
+            'video.max' => 'Видео слишком большое (макс. 2ГБ)',
             'video.required' => 'Выберите видеофайл для загрузки',
         ];
     }

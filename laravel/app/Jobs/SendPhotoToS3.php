@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Events\PhotoProcessed;
 use App\Models\Photo;
-use App\Observers\PhotoObserver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;

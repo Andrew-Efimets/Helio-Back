@@ -5,7 +5,10 @@ use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\LikeController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Broadcast;
@@ -20,9 +23,13 @@ Route::get('/login', function () {
 Route::prefix('/v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify', [AuthController::class, 'verify'])
-        ->middleware('throttle:60,1');
+        ->middleware('throttle:20,1');
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:60,1');
+        ->middleware('throttle:20,1');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:20,1');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:20,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -52,14 +59,30 @@ Route::prefix('/v1')->group(function () {
             Route::post('/video', [VideoController::class, 'store']);
             Route::delete('/video/{video}', [VideoController::class, 'destroy']);
 
-            Route::get('/chats', [ChatController::class, 'index'])
-                ->middleware('privacy:show_chat');
-            Route::get('/chat/{chat}', [ChatController::class, 'show'])
-                ->middleware('privacy:show_chat');
-            Route::post('/chat', [ChatController::class, 'store']);
-            Route::patch('/chat', [ChatController::class, 'update']);
-            Route::delete('/chat', [ChatController::class, 'destroy']);
+            Route::get('/posts', [PostController::class, 'index'])
+                ->middleware('privacy:show_account');
+            Route::post('/post', [PostController::class, 'store']);
+            Route::patch('/post/{post}', [PostController::class, 'update']);
+            Route::delete('/post/{post}', [PostController::class, 'destroy']);
         });
+
+        Route::prefix('/chats')->group(function () {
+            Route::get('/', [ChatController::class, 'index']);
+            Route::get('/chat/{chat}', [ChatController::class, 'show']);
+            Route::post('/chat', [ChatController::class, 'store']);
+            Route::post('/group', [ChatController::class, 'storeGroup']);
+            Route::patch('/chat/{chat}', [ChatController::class, 'update']);
+            Route::delete('/chat/{chat}', [ChatController::class, 'destroy']);
+            Route::post('/chat/{chat}/read', [ChatController::class, 'markRead']);
+            Route::post('/chat/{chat}/leave', [ChatController::class, 'leaveChat']);
+            Route::post('/chat/{chat}/members/{user}', [ChatController::class, 'addMember']);
+            Route::delete('/chat/{chat}/members/{user}', [ChatController::class, 'deleteMember']);
+            Route::post('/chat/{chat}/messages', [MessageController::class, 'store']);
+            Route::patch('/chat/{chat}/messages/{message}', [MessageController::class, 'update']);
+            Route::delete('/chat/{chat}/messages/{message}', [MessageController::class, 'destroy']);
+        });
+
+
 
         Route::prefix('/profile/{user}')->group(function () {
             Route::get('/avatars', [AvatarController::class, 'index']);
@@ -73,6 +96,8 @@ Route::prefix('/v1')->group(function () {
             Route::middleware('media_privacy')->group(function () {
                 Route::get('/comments', [CommentController::class, 'index']);
                 Route::post('/comments', [CommentController::class, 'store']);
+                Route::get('/likes', [LikeController::class, 'index']);
+                Route::post('/likes', [LikeController::class, 'toggle']);
             });
 
         })->where('type', 'video|photo|post');

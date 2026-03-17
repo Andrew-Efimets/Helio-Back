@@ -16,6 +16,7 @@ class ContactRequestSent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public string $message;
+
     public int $senderId;
     public int $receiverId;
 
@@ -29,6 +30,7 @@ class ContactRequestSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
+            new PrivateChannel('user.' . $this->senderId),
             new PrivateChannel('user.' . $this->receiverId)
         ];
     }
@@ -36,5 +38,14 @@ class ContactRequestSent implements ShouldBroadcast
     public function broadcastAs(): string
     {
         return 'contact.request';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'senderId'   => $this->senderId,
+            'receiverId' => $this->receiverId,
+            'message'    => $this->message,
+        ];
     }
 }

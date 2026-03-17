@@ -7,7 +7,6 @@ use App\Jobs\SendPhotoToS3;
 use App\Models\Photo;
 use App\Models\User;
 use App\Traits\HasOwnerStatus;
-use Illuminate\Support\Facades\Storage;
 
 class PhotoController extends Controller
 {
@@ -17,7 +16,7 @@ class PhotoController extends Controller
     {
         $photos = $user->photos()->orderBy('created_at', 'desc')->get();
         return response()->json([
-            'message' => 'Запрос сработал',
+            'message' => 'Фотографии получены',
             'data' => $photos,
         ]);
     }

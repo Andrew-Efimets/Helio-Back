@@ -15,12 +15,15 @@ class CommentController extends Controller
         $commentable = $modelClass::where('user_id', $user->id)->findOrFail($id);
 
         $comments = $commentable->comments()
-            ->with(['user.activeAvatar'])
+            ->with([
+                'user' => fn($query) => $query->select('id', 'name'),
+                'user.activeAvatar'
+            ])
             ->latest()
             ->get();
 
         return response()->json([
-            'data' => $comments->load(['user.activeAvatar']),
+            'data' => $comments,
         ], 200);
     }
 
@@ -45,12 +48,16 @@ class CommentController extends Controller
             'parent_id' => $validated['parent_id'] ?? null,
         ]);
 
-        $comment->load(['user.activeAvatar', 'parent.user']);
+        $comment->load([
+            'user' => fn($query) => $query->select('id', 'name'),
+            'user.activeAvatar',
+            'parent.user' => fn($query) => $query->select('id', 'name')
+        ]);
 
         broadcast(new CommentCreated($comment))->toOthers();
 
         return response()->json([
-            'data' => $comment->load(['user.activeAvatar', 'parent.user']),
+            'data' => $comment,
         ], 201);
     }
 }

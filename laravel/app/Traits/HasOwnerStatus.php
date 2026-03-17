@@ -13,11 +13,13 @@ trait HasOwnerStatus
     {
         $checkId = match (true) {
             $model instanceof User => $model->id,
-            $model instanceof Chat => $model->creator_id,
+            $model instanceof Chat => $model->users()
+                ->where('users.id', auth()->id())
+                ->value('users.id'),
             default => $model->user_id,
         };
 
-        if ($checkId !== auth()->id()) {
+        if ((int) $checkId !== (int) auth()->id()) {
             throw new HttpResponseException(
                 response()->json([
                     'message' => 'У вас нет прав для выполнения этого действия'

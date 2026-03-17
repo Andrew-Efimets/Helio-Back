@@ -4,23 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserShortResource;
 use App\Models\User;
 use App\Traits\HasOwnerStatus;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     use HasOwnerStatus;
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
-        return response()->json([
-            'users' => UserResource::collection($users)
-        ], 200);
+        $users = User::query()
+            ->where('id', '!=', auth()->id())
+            ->filtered($request)
+            ->withBaseData()
+            ->orderBy('name', $request->query('sort', 'asc'))
+            ->paginate(20);
+
+        return UserShortResource::collection($users);
     }
 
     /**
@@ -28,13 +36,14 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['avatars', 'profile'])
-            ->loadCount([
+        $user = User::withSymmetricContactsCount()
+            ->withCount([
                 'photos',
                 'videos',
-                'contacts',
                 'pending_contacts'
-            ]);
+            ])
+            ->with(['avatars', 'profile'])
+            ->find($user->id);
 
         return response()->json([
             'message' => 'Переданы данные пользователя',

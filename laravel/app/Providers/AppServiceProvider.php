@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Chat;
 use App\Models\Photo;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\Video;
+use App\Observers\ChatObserver;
 use App\Observers\PhotoObserver;
+use App\Observers\PostObserver;
 use App\Observers\UserObserver;
 use App\Observers\VideoObserver;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -30,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Photo::observe(PhotoObserver::class);
         Video::observe(VideoObserver::class);
+        Post::observe(PostObserver::class);
+        Chat::observe(ChatObserver::class);
 
         Relation::enforceMorphMap([
             'video' => Video::class,
