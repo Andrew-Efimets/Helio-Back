@@ -14,10 +14,13 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     $db = config('database.connections.mysql');
     $date = now()->format('Y-m-d_H-i');
-    $filename = "backups/db_dump_{$date}.sql";
-    $fullPath = storage_path("app/{$filename}");
 
-    Storage::makeDirectory('backups');
+    $backupDir = storage_path("app/backups");
+    $fullPath = "{$backupDir}/db_dump_{$date}.sql";
+
+    if (!file_exists($backupDir)) {
+        mkdir($backupDir, 0755, true);
+    }
 
     $result = Process::env([
         'MYSQL_PWD' => $db['password']
@@ -33,7 +36,7 @@ Schedule::call(function () {
     if ($result->successful() && file_exists($fullPath) && filesize($fullPath) > 0) {
         chmod($fullPath, 0644);
         logger()->info(
-            "Дамп успешно создан: {$filename}, размер: " . filesize($fullPath)
+            "Дамп успешно создан: {$fullPath}, размер: " . filesize($fullPath)
         );
     } else {
         logger()->error("Ошибка дампа: " . $result->errorOutput());
